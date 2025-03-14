@@ -1,14 +1,1105 @@
-<!DOCTYPE html>
+<div class="toast-container" id="toastContainer">
+                <!-- Toast notifications will appear here -->
+            </div>
+        </main>
+        
+        <footer>
+            <div class="footer-content">
+                <a href="#" class="footer-logo">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                        <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                        <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                    </svg>
+                    NeuroViz
+                </a>
+                <div class="footer-links">
+                    <a href="#">About</a>
+                    <a href="#">Documentation</a>
+                    <a href="#">Privacy</a>
+                    <a href="https://github.com/yourusername/neuroviz" target="_blank">GitHub</a>
+                </div>
+            </div>
+        </footer>
+    </div>
+    
+    <script>
+        // Tab animation functionality
+        document.querySelectorAll('.tabs .tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Get the container of tabs
+                const tabContainer = tab.closest('.tabs');
+                const tabSlide = tabContainer.querySelector('.tab-slide');
+                const tabContentId = tab.getAttribute('data-tab');
+                
+                // Move the sliding background
+                if (tabSlide) {
+                    const tabRect = tab.getBoundingClientRect();
+                    const containerRect = tabContainer.getBoundingClientRect();
+                    tabSlide.style.width = `${tabRect.width}px`;
+                    tabSlide.style.left = `${tabRect.left - containerRect.left}px`;
+                }
+                
+                // First, deactivate all tabs in this container
+                tabContainer.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                
+                // Activate the clicked tab
+                tab.classList.add('active');
+                
+                // If this is the main tabs section, also toggle content visibility
+                if (tabContainer.nextElementSibling && tabContainer.nextElementSibling.classList.contains('tab-content')) {
+                    // Hide all tab content
+                    const tabContents = tabContainer.parentElement.querySelectorAll('.tab-content');
+                    tabContents.forEach(content => content.classList.remove('active'));
+                    
+                    // Show the selected tab content
+                    const activeContent = document.getElementById(`${tabContentId}-tab`);
+                    if (activeContent) {
+                        activeContent.classList.add('active');
+                    }
+                }
+            });
+        });
+        
+        // Initialize tab slide positions
+        document.querySelectorAll('.tabs').forEach(tabContainer => {
+            const activeTab = tabContainer.querySelector('.tab.active');
+            const tabSlide = tabContainer.querySelector('.tab-slide');
+            
+            if (activeTab && tabSlide) {
+                setTimeout(() => {
+                    const tabRect = activeTab.getBoundingClientRect();
+                    const containerRect = tabContainer.getBoundingClientRect();
+                    tabSlide.style.width = `${tabRect.width}px`;
+                    tabSlide.style.left = `${tabRect.left - containerRect.left}px`;
+                }, 100);
+            }
+        });
+        
+        // Upload functionality
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileInfo = document.getElementById('fileInfo');
+        const processBtn = document.getElementById('processBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const useExampleBtn = document.getElementById('useExampleBtn');
+        const demoBtn = document.getElementById('demoBtn');
+        
+        if (uploadArea) {
+            uploadArea.addEventListener('click', () => {
+                fileInput.click();
+            });
+            
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('pulse');
+            });
+            
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('pulse');
+            });
+            
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('pulse');
+                if (e.dataTransfer.files.length > 0) {
+                    handleFile(e.dataTransfer.files[0]);
+                }
+            });
+        }
+        
+        if (fileInput) {
+            fileInput.addEventListener('change', () => {
+                if (fileInput.files.length > 0) {
+                    handleFile(fileInput.files[0]);
+                }
+            });
+        }
+        
+        function handleFile(file) {
+            if (!fileInfo) return;
+            
+            const fileName = file.name;
+            const fileSize = (file.size / (1024 * 1024)).toFixed(2); // in MB
+            
+            fileInfo.innerHTML = `
+                <div class="file-info-item">
+                    <span class="file-info-label">Filename:</span>
+                    <span class="file-info-value">${fileName}</span>
+                </div>
+                <div class="file-info-item">
+                    <span class="file-info-label">Size:</span>
+                    <span class="file-info-value">${fileSize} MB</span>
+                </div>
+                <div class="file-info-item">
+                    <span class="file-info-label">Dimensions:</span>
+                    <span class="file-info-value">256 × 256 × 156</span>
+                </div>
+            `;
+            
+            fileInfo.classList.add('active');
+            
+            if (processBtn) processBtn.disabled = false;
+            if (clearBtn) clearBtn.disabled = false;
+            
+            // Show toast notification
+            showToast('File uploaded successfully!', 'success');
+        }
+        
+        if (clearBtn) {
+            clearBtn.addEventListener('click', () => {
+                if (fileInput) fileInput.value = '';
+                if (fileInfo) fileInfo.classList.remove('active');
+                if (processBtn) processBtn.disabled = true;
+                clearBtn.disabled = true;
+                
+                showToast('File cleared', 'warning');
+            });
+        }
+        
+        // Use example data button
+        if (useExampleBtn) {
+            useExampleBtn.addEventListener('click', () => {
+                if (fileInfo) {
+                    fileInfo.innerHTML = `
+                        <div class="file-info-item">
+                            <span class="file-info-label">Filename:</span>
+                            <span class="file-info-value">example_brain.nii.gz</span>
+                        </div>
+                        <div class="file-info-item">
+                            <span class="file-info-label">Size:</span>
+                            <span class="file-info-value">18.3 MB</span>
+                        </div>
+                        <div class="file-info-item">
+                            <span class="file-info-label">Dimensions:</span>
+                            <span class="file-info-value">256 × 256 × 156</span>
+                        </div>
+                    `;
+                    fileInfo.classList.add('active');
+                }
+                
+                if (processBtn) processBtn.disabled = false;
+                if (clearBtn) clearBtn.disabled = false;
+                
+                showToast('Example data loaded', 'success');
+            });
+        }
+        
+        // Demo button in hero section
+        if (demoBtn) {
+            demoBtn.addEventListener('click', () => {
+                document.getElementById('demo').scrollIntoView({ behavior: 'smooth' });
+                
+                // Automatically load example data after scrolling
+                setTimeout(() => {
+                    if (useExampleBtn) useExampleBtn.click();
+                }, 800);
+            });
+        }
+        
+        // Process button
+        if (processBtn) {
+            processBtn.addEventListener('click', () => {
+                processFile();
+            });
+        }
+        
+        // Toast notification system
+        function showToast(message, type = 'success') {
+            const toastContainer = document.getElementById('toastContainer');
+            if (!toastContainer) return;
+            
+            const toast = document.createElement('div');
+            toast.classList.add('toast', `toast-${type}`);
+            
+            let icon = '';
+            if (type === 'success') {
+                icon = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                </svg>`;
+            } else if (type === 'error') {
+                icon = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>`;
+            } else if (type === 'warning') {
+                icon = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                </svg>`;
+            }
+            
+            toast.innerHTML = `
+                <div class="toast-icon">${icon}</div>
+                <div class="toast-content">${message}</div>
+                <button class="toast-close">×</button>
+            `;
+            
+            toastContainer.appendChild(toast);
+            
+            // Add close functionality
+            toast.querySelector('.toast-close').addEventListener('click', () => {
+                toastContainer.removeChild(toast);
+            });
+            
+            // Remove toast after animation completes
+            setTimeout(() => {
+                if (toastContainer.contains(toast)) {
+                    toastContainer.removeChild(toast);
+                }
+            }, 5000);
+        }
+        
+        // Process file function - simulates the processing pipeline
+        function processFile() {
+            // Hide parameters and show processing
+            const processSection = document.getElementById('processing');
+            const parametersSection = document.getElementById('parameters');
+            const demoSection = document.getElementById('demo');
+            const resultsSection = document.getElementById('results');
+            
+            if (processSection && parametersSection && demoSection) {
+                // Show processing section and hide other sections
+                processSection.style.display = 'block';
+                parametersSection.style.display = 'none';
+                demoSection.style.display = 'none';
+                if (resultsSection) resultsSection.style.display = 'none';
+                
+                // Scroll to processing section
+                processSection.scrollIntoView({ behavior: 'smooth' });
+            }
+            
+            // Simulate a processing pipeline
+            const progressBar = document.getElementById('progressBar');
+            const statusMessage = document.getElementById('statusMessage');
+            
+            if (!progressBar || !statusMessage) return;
+            
+            let progress = 0;
+            progressBar.style.width = '0%';
+            
+            const interval = setInterval(() => {
+                progress += 2;
+                progressBar.style.width = `${progress}%`;
+                
+                if (progress === 20) {
+                    statusMessage.innerHTML = `
+                        <span class="loading-spinner"></span>
+                        Preprocessing NIfTI data...
+                    `;
+                } else if (progress === 40) {
+                    statusMessage.innerHTML = `
+                        <span class="loading-spinner"></span>
+                        Running neural network segmentation...
+                    `;
+                } else if (progress === 60) {
+                    statusMessage.innerHTML = `
+                        <span class="loading-spinner"></span>
+                        Post-processing segmentation masks...
+                    `;
+                } else if (progress === 80) {
+                    statusMessage.innerHTML = `
+                        <span class="loading-spinner"></span>
+                        Generating 3D surface model...
+                    `;
+                } else if (progress >= 100) {
+                    statusMessage.innerHTML = `
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                        </svg>
+                        Processing complete!
+                    `;
+                    clearInterval(interval);
+                    
+                    // Show results after a short delay
+                    setTimeout(() => {
+                        if (processSection && resultsSection) {
+                            processSection.style.display = 'none';
+                            resultsSection.style.display = 'block';
+                            resultsSection.scrollIntoView({ behavior: 'smooth' });
+                            
+                            // Initialize charts
+                            initializeCharts();
+                        }
+                        
+                        showToast('Processing completed successfully!', 'success');
+                    }, 1000);
+                }
+            }, 100);
+        }
+        
+        // Slider value display
+        document.querySelectorAll('.slider').forEach(slider => {
+            const valueDisplay = slider.parentElement.querySelector('.slider-value');
+            if (valueDisplay) {
+                slider.addEventListener('input', () => {
+                    // For different types of sliders, normalize the value
+                    if (slider.id === 'lambdaSlider') {
+                        valueDisplay.textContent = (slider.value / 10).toFixed(1);
+                    } else if (slider.id === 'confidenceSlider' || slider.id === 'rotationSlider' || 
+                              slider.id === 'lightingSlider' || slider.id === 'contrastSlider' || 
+                              slider.id === 'brightnessSlider') {
+                        valueDisplay.textContent = (slider.value / 100).toFixed(1);
+                    } else {
+                        valueDisplay.textContent = slider.value;
+                    }
+                });
+            }
+        });
+        
+        // Toggle dependencies - e.g., disable smoothing options when smoothing is turned off
+        const smoothingToggle = document.getElementById('smoothingToggle');
+        if (smoothingToggle) {
+            const iterationsSlider = document.getElementById('iterationsSlider');
+            const lambdaSlider = document.getElementById('lambdaSlider');
+            
+            smoothingToggle.addEventListener('change', () => {
+                const isDisabled = !smoothingToggle.checked;
+                
+                if (iterationsSlider) {
+                    iterationsSlider.disabled = isDisabled;
+                    iterationsSlider.parentElement.parentElement.parentElement.style.opacity = isDisabled ? 0.5 : 1;
+                }
+                
+                if (lambdaSlider) {
+                    lambdaSlider.disabled = isDisabled;
+                    lambdaSlider.parentElement.parentElement.parentElement.style.opacity = isDisabled ? 0.5 : 1;
+                }
+            });
+        }
+        
+        // Initialize the charts for metrics visualization
+        function initializeCharts() {
+            const accuracyCtx = document.getElementById('accuracyChart');
+            const lossCtx = document.getElementById('lossChart');
+            
+            if (!accuracyCtx || !lossCtx) return;
+            
+            // Accuracy chart
+            const accuracyChart = new Chart(accuracyCtx.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: Array.from({length: 50}, (_, i) => i + 1),
+                    datasets: [
+                        {
+                            label: 'Training Accuracy',
+                            data: [0.9422, 0.9860, 0.9868, 0.9903, 0.9924, 0.9934, 0.9910, 0.9935, 0.9943, 0.9904, 0.9942, 0.9943, 0.9937, 0.9959, 0.9973, 0.9979, 0.9967, 0.9950, 0.9957, 0.9949, 0.9974, 0.9994, 0.9974, 0.9984, 0.9972, 0.9984, 0.9954, 0.9996, 0.9985, 0.9980, 0.9995, 0.9979, 1.0000, 1.0000, 0.9947, 1.0000, 0.9980, 0.9969, 0.9994, 0.9989, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000],
+                            borderColor: 'rgba(124, 58, 237, 1)',
+                            backgroundColor: 'rgba(124, 58, 237, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        },
+                        {
+                            label: 'Validation Accuracy',
+                            data: [0.3157, 0.9886, 0.9846, 0.9933, 0.9920, 0.9243, 0.9819, 0.9893, 0.3137, 0.9893, 0.9752, 0.9940, 0.9859, 0.9953, 0.9946, 0.9926, 0.9886, 0.9564, 0.9745, 0.8633, 0.9946, 0.9739, 0.9980, 0.9940, 0.9966, 0.9819, 0.9980, 0.9960, 0.9698, 0.9920, 0.9873, 0.9966, 0.9966, 0.9973, 0.9940, 0.9946, 0.9886, 0.9920, 0.9960, 0.9953, 0.9980, 0.9980, 0.9973, 0.9973, 0.9973, 0.9973, 0.9966, 0.9973, 0.9966, 0.9960],
+                            borderColor: 'rgba(16, 185, 129, 1)',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                        }
+                    },
+                    scales: {
+                        y: {
+                            min: 0.3,
+                            max: 1.0,
+                            ticks: {
+                                callback: function(value) {
+                                    return value.toFixed(1);
+                                }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Accuracy'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Epoch'
+                            }
+                        }
+                    },
+                    interaction: {
+                        mode: 'nearest',
+                        axis: 'x',
+                        intersect: false
+                    },
+                    animation: {
+                        duration: 1000
+                    }
+                }
+            });
+            
+            // Loss chart
+            const lossChart = new Chart(lossCtx.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: Array.from({length: 50}, (_, i) => i + 1),
+                    datasets: [
+                        {
+                            label: 'Training Loss',
+                            data: [0.1588, 0.0381, 0.0348, 0.0250, 0.0206, 0.0193, 0.0230, 0.0193, 0.0198, 0.0241, 0.0167, 0.0181, 0.0179, 0.0162, 0.0120, 0.0118, 0.0136, 0.0130, 0.0162, 0.0155, 0.0108, 0.0084, 0.0107, 0.0097, 0.0100, 0.0085, 0.0125, 0.0070, 0.0107, 0.0128, 0.0075, 0.0095, 0.0059, 0.0055, 0.0160, 0.0057, 0.0104, 0.0104, 0.0065, 0.0065, 0.0054, 0.0047, 0.0046, 0.0043, 0.0042, 0.0040, 0.0039, 0.0037, 0.0037, 0.0036],
+                            borderColor: 'rgba(124, 58, 237, 1)',
+                            backgroundColor: 'rgba(124, 58, 237, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        },
+                        {
+                            label: 'Validation Loss',
+                            data: [2.0774, 0.0360, 0.0309, 0.0240, 0.0254, 0.1624, 0.0472, 0.0291, 1.2924, 0.0225, 0.0703, 0.0173, 0.0530, 0.0159, 0.0175, 0.0224, 0.0212, 0.1000, 0.0406, 0.2564, 0.0199, 0.0603, 0.0122, 0.0131, 0.0178, 0.0657, 0.0142, 0.0175, 0.0821, 0.0200, 0.0347, 0.0133, 0.0167, 0.0167, 0.0192, 0.0198, 0.0319, 0.0168, 0.0135, 0.0131, 0.0141, 0.0131, 0.0138, 0.0160, 0.0153, 0.0161, 0.0169, 0.0161, 0.0170, 0.0170],
+                            borderColor: 'rgba(16, 185, 129, 1)',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                        }
+                    },
+                    scales: {
+                        y: {
+                            min: 0,
+                            max: 0.3,  // Limiting to see details, ignoring initial high values
+                            ticks: {
+                                callback: function(value) {
+                                    return value.toFixed(3);
+                                }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Loss'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Epoch'
+                            }
+                        }
+                    },
+                    interaction: {
+                        mode: 'nearest',
+                        axis: 'x',
+                        intersect: false
+                    },
+                    animation: {
+                        duration: 1000
+                    }
+                }
+            });
+            
+            // Add marker for optimal epoch (23)
+            const optimalEpoch = 23;
+            
+            accuracyChart.data.datasets.push({
+                label: 'Optimal Epoch',
+                data: Array(50).fill(null),
+                pointBackgroundColor: 'red',
+                pointBorderColor: 'red',
+                pointRadius: 6,
+                pointHoverRadius: 8,
+                pointStyle: 'rectRot',
+                showLine: false
+            });
+            
+            lossChart.data.datasets.push({
+                label: 'Optimal Epoch',
+                data: Array(50).fill(null),
+                pointBackgroundColor: 'red',
+                pointBorderColor: 'red',
+                pointRadius: 6,
+                pointHoverRadius: 8,
+                pointStyle: 'rectRot',
+                showLine: false
+            });
+            
+            // Set the data point for the optimal epoch
+            accuracyChart.data.datasets[2].data[optimalEpoch-1] = accuracyChart.data.datasets[1].data[optimalEpoch-1];
+            lossChart.data.datasets[2].data[optimalEpoch-1] = lossChart.data.datasets[1].data[optimalEpoch-1];
+            
+            accuracyChart.update();
+            lossChart.update();
+        }
+        
+        // Set up image slice navigation interaction
+        const sliceSlider = document.getElementById('sliceSlider');
+        const prevSliceBtn = document.getElementById('prevSlice');
+        const nextSliceBtn = document.getElementById('nextSlice');
+        const currentSliceElement = document.getElementById('currentSliceNum');
+        const totalSlicesElement = document.getElementById('totalSlices');
+        
+        if (sliceSlider && prevSliceBtn && nextSliceBtn) {
+            // Total number of slices (from your data)
+            const totalSlices = 156;
+            
+            // Initialize display
+            if (totalSlicesElement) {
+                totalSlicesElement.textContent = totalSlices;
+            }
+            
+            // Update slice number display
+            function updateSliceDisplay() {
+                if (currentSliceElement) {
+                    currentSliceElement.textContent = sliceSlider.value;
+                }
+            }
+            
+            // Slider change event
+            sliceSlider.addEventListener('input', updateSliceDisplay);
+            
+            // Navigation buttons
+            prevSliceBtn.addEventListener('click', () => {
+                if (parseInt(sliceSlider.value) > parseInt(sliceSlider.min)) {
+                    sliceSlider.value = parseInt(sliceSlider.value) - 1;
+                    updateSliceDisplay();
+                }
+            });
+            
+            nextSliceBtn.addEventListener('click', () => {
+                if (parseInt(sliceSlider.value) < parseInt(sliceSlider.max)) {
+                    sliceSlider.value = parseInt(sliceSlider.value) + 1;
+                    updateSliceDisplay();
+                }
+            });
+            
+            // Update slice slider range based on total slices
+            sliceSlider.max = totalSlices;
+            sliceSlider.value = Math.floor(totalSlices / 2);
+            updateSliceDisplay();
+        }
+        
+        // Gallery item click to view in main viewer
+        document.querySelectorAll('.gallery-item').forEach((item, index) => {
+            item.addEventListener('click', () => {
+                // Switch to slice viewer tab
+                const slicesTab = document.querySelector('.tabs .tab[data-tab="slices"]');
+                if (slicesTab) slicesTab.click();
+                
+                // Set slider to this slice number
+                const sliceNumber = parseInt(item.querySelector('.gallery-item-number').textContent);
+                if (sliceSlider) {
+                    sliceSlider.value = sliceNumber;
+                    
+                    // Update display
+                    if (currentSliceElement) {
+                        currentSliceElement.textContent = sliceNumber;
+                    }
+                }
+                
+                // Show a toast
+                showToast(`Viewing slice ${sliceNumber}`, 'success');
+            });
+        });
+        
+        // Add slide-in animation to sections on scroll
+        function checkSlideIn() {
+            const sections = document.querySelectorAll('.slide-in-section');
+            
+            sections.forEach(section => {
+                const slideInAt = (window.scrollY + window.innerHeight) - section.offsetHeight / 2;
+                const sectionBottom = section.offsetTop + section.offsetHeight;
+                const isHalfShown = slideInAt > section.offsetTop;
+                const isNotScrolledPast = window.scrollY < sectionBottom;
+                
+                if (isHalfShown && isNotScrolledPast) {
+                    section.querySelector('.card').classList.add('active');
+                }
+            });
+        }
+        
+        window.addEventListener('scroll', checkSlideIn);
+        
+        // Check for slide-in on page load
+        window.addEventListener('load', () => {
+            checkSlideIn();
+            
+            // Animate tab slides into position
+            setTimeout(() => {
+                document.querySelectorAll('.tabs').forEach(tabContainer => {
+                    const activeTab = tabContainer.querySelector('.tab.active');
+                    const tabSlide = tabContainer.querySelector('.tab-slide');
+                    
+                    if (activeTab && tabSlide) {
+                        const tabRect = activeTab.getBoundingClientRect();
+                        const containerRect = tabContainer.getBoundingClientRect();
+                        tabSlide.style.width = `${tabRect.width}px`;
+                        tabSlide.style.left = `${tabRect.left - containerRect.left}px`;
+                    }
+                });
+            }, 100);
+        });
+    </script>
+</body>
+</html>24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                        <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                        <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                    </svg>
+                    NeuroViz
+                </a>
+                <div class="footer-links">
+                    <a href="#">About</a>
+                    <a href="#">Documentation</a>
+                    <a href="#">Privacy</a>
+                    <a href="https://github.com/yourusername/neuroviz" target="_blank">GitHub</a>
+                </div>
+            </div>
+        </footer>
+    </div>
+    
+    <script>
+        // Tab animation functionality
+        document.querySelectorAll('.tabs .tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Get the container of tabs
+                const tabContainer = tab.closest('.tabs');
+                const tabSlide = tabContainer.querySelector('.tab-slide');
+                const tabContentId = tab.getAttribute('data-tab');
+                
+                // Move the sliding background
+                if (tabSlide) {
+                    const tabRect = tab.getBoundingClientRect();
+                    const containerRect = tabContainer.getBoundingClientRect();
+                    tabSlide.style.width = `${tabRect.width}px`;
+                    tabSlide.style.left = `${tabRect.left - containerRect.left}px`;
+                }
+                
+                // First, deactivate all tabs in this container
+                tabContainer.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                
+                // Activate the clicked tab
+                tab.classList.add('active');
+                
+                // If this is the main tabs section, also toggle content visibility
+                if (tabContainer.nextElementSibling && tabContainer.nextElementSibling.classList.contains('tab-content')) {
+                    // Hide all tab content
+                    const tabContents = tabContainer.parentElement.querySelectorAll('.tab-content');
+                    tabContents.forEach(content => content.classList.remove('active'));
+                    
+                    // Show the selected tab content
+                    const activeContent = document.getElementById(`${tabContentId}-tab`);
+                    if (activeContent) {
+                        activeContent.classList.add('active');
+                    }
+                }
+            });
+        });
+        
+        // Initialize tab slide positions
+        document.querySelectorAll('.tabs').forEach(tabContainer => {
+            const activeTab = tabContainer.querySelector('.tab.active');
+            const tabSlide = tabContainer.querySelector('.tab-slide');
+            
+            if (activeTab && tabSlide) {
+                setTimeout(() => {
+                    const tabRect = activeTab.getBoundingClientRect();
+                    const containerRect = tabContainer.getBoundingClientRect();
+                    tabSlide.style.width = `${tabRect.width}px`;
+                    tabSlide.style.left = `${tabRect.left - containerRect.left}px`;
+                }, 100);
+            }
+        });
+        
+        // Upload functionality
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileInfo = document.getElementById('fileInfo');
+        const processBtn = document.getElementById('processBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const useExampleBtn = document.getElementById('useExampleBtn');
+        const demoBtn = document.getElementById('demoBtn');
+        
+        if (uploadArea) {
+            uploadArea.addEventListener('click', () => {
+                fileInput.click();
+            });
+            
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault            
+            <section id="processing" style="display: none;">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="23 4 23 10 17 10"></polyline>
+                                <polyline points="1 20 1 14 7 14"></polyline>
+                                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                            </svg>
+                            Processing Pipeline
+                        </h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="progress-flow">
+                            <div class="progress-step">
+                                <h3>Loading & Preprocessing</h3>
+                                <p>Preparing your NIfTI data for segmentation...</p>
+                            </div>
+                            <div class="progress-step">
+                                <h3>Brain Segmentation</h3>
+                                <p>Applying the deep learning model to segment brain tissue...</p>
+                            </div>
+                            <div class="progress-step">
+                                <h3>Post-processing</h3>
+                                <p>Resizing and refining segmentation results...</p>
+                            </div>
+                            <div class="progress-step">
+                                <h3>3D Model Generation</h3>
+                                <p>Converting segmentation mask to 3D surface model...</p>
+                            </div>
+                        </div>
+                        
+                        <div class="progress-bar-container">
+                            <div class="progress-bar" id="progressBar"></div>
+                        </div>
+                        <div class="status-message" id="statusMessage">
+                            <span class="loading-spinner"></span>
+                            Initializing pipeline...
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <section id="results" style="display: none;">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                            </svg>
+                            Results & Visualization
+                        </h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="tabs">
+                            <div class="tab active" data-tab="slices">Slice Viewer</div>
+                            <div class="tab" data-tab="model">3D Model</div>
+                            <div class="tab" data-tab="metrics">Analytics</div>
+                            <div class="tab" data-tab="gallery">Gallery</div>
+                            <div class="tab-slide" style="width: 105px;"></div>
+                        </div>
+                        
+                        <div class="tab-content active" id="slices-tab">
+                            <div class="result-grid">
+                                <div class="preview-container">
+                                    <img src="https://placehold.co/500x400/7C3AED/FFFFFF?text=Brain+Slice" alt="brain slice" id="currentSlice">
+                                    <div class="preview-controls">
+                                        <button class="control-btn" id="prevSlice">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <polyline points="15 18 9 12 15 6"></polyline>
+                                            </svg>
+                                        </button>
+                                        <input type="range" min="0" max="100" value="50" class="control-slider" id="sliceSlider">
+                                        <button class="control-btn" id="nextSlice">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <polyline points="9 18 15 12 9 6"></polyline>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="parameter-section">
+                                    <h3>Slice Navigation</h3>
+                                    <div class="parameter-row">
+                                        <div class="parameter-label">Current Slice:</div>
+                                        <div class="parameter-control">
+                                            <span id="currentSliceNum">50</span> / <span id="totalSlices">156</span>
+                                        </div>
+                                    </div>
+                                    <div class="parameter-row">
+                                        <div class="parameter-label">View Mode:</div>
+                                        <div class="parameter-control">
+                                            <div class="tabs">
+                                                <div class="tab active" data-tab="original">Original</div>
+                                                <div class="tab" data-tab="mask">Segmentation</div>
+                                                <div class="tab" data-tab="overlay">Overlay</div>
+                                                <div class="tab-slide" style="width: 88px;"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="parameter-row">
+                                        <div class="parameter-label">Orientation:</div>
+                                        <div class="parameter-control">
+                                            <div class="tabs">
+                                                <div class="tab active" data-tab="axial">Axial</div>
+                                                <div class="tab" data-tab="coronal">Coronal</div>
+                                                <div class="tab" data-tab="sagittal">Sagittal</div>
+                                                <div class="tab-slide" style="width: 60px;"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="parameter-row">
+                                        <div class="parameter-label">Contrast:</div>
+                                        <div class="parameter-control">
+                                            <div class="slider-container">
+                                                <input type="range" min="0" max="100" value="50" class="slider" id="contrastSlider">
+                                                <span class="slider-value">1.0</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="parameter-row">
+                                        <div class="parameter-label">Brightness:</div>
+                                        <div class="parameter-control">
+                                            <div class="slider-container">
+                                                <input type="range" min="0" max="100" value="50" class="slider" id="brightnessSlider">
+                                                <span class="slider-value">0.0</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="btn-container" style="margin-top: 1.5rem;">
+                                        <button class="btn btn-primary">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                                <polyline points="7 10 12 15 17 10"></polyline>
+                                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                                            </svg>
+                                            Export Current View
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="tab-content" id="model-tab">
+                            <div class="result-grid">
+                                <div class="preview-container">
+                                    <img src="https://placehold.co/500x400/1F2937/FFFFFF?text=3D+Model" alt="3D brain model" id="modelViewer">
+                                </div>
+                                
+                                <div class="parameter-section">
+                                    <h3>3D Model Controls</h3>
+                                    <div class="parameter-row">
+                                        <div class="parameter-label">Rotation Speed:</div>
+                                        <div class="parameter-control">
+                                            <div class="slider-container">
+                                                <input type="range" min="0" max="100" value="30" class="slider" id="rotationSlider">
+                                                <span class="slider-value">0.3</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="parameter-row">
+                                        <div class="parameter-label">Surface Color:</div>
+                                        <div class="parameter-control">
+                                            <input type="color" value="#7C3AED" class="form-control" style="width: 50px; height: 40px;">
+                                        </div>
+                                    </div>
+                                    <div class="parameter-row">
+                                        <div class="parameter-label">Lighting:</div>
+                                        <div class="parameter-control">
+                                            <div class="slider-container">
+                                                <input type="range" min="0" max="100" value="70" class="slider" id="lightingSlider">
+                                                <span class="slider-value">0.7</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="parameter-row">
+                                        <div class="parameter-label">Background:</div>
+                                        <div class="parameter-control">
+                                            <select class="form-control">
+                                                <option selected>Dark Gradient</option>
+                                                <option>Light</option>
+                                                <option>Grid</option>
+                                                <option>Transparent</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="btn-container" style="margin-top: 1.5rem;">
+                                        <button class="btn btn-primary">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                                <polyline points="7 10 12 15 17 10"></polyline>
+                                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                                            </svg>
+                                            Download STL
+                                        </button>
+                                        <button class="btn btn-secondary">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                                <polyline points="7 10 12 15 17 10"></polyline>
+                                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                                            </svg>
+                                            Download Smoothed STL
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="tab-content" id="metrics-tab">
+                            <div class="metrics-grid">
+                                <div class="parameter-section">
+                                    <h3>Segmentation Performance</h3>
+                                    <div class="chart-container">
+                                        <canvas id="accuracyChart"></canvas>
+                                    </div>
+                                </div>
+                                <div class="parameter-section">
+                                    <h3>Loss Metrics</h3>
+                                    <div class="chart-container">
+                                        <canvas id="lossChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="parameter-section" style="margin-top: 1.5rem;">
+                                <h3>Processing Statistics</h3>
+                                <table style="width: 100%; border-collapse: collapse; margin-top: 1rem;">
+                                    <tr>
+                                        <th style="text-align: left; padding: 0.75rem; border-bottom: 1px solid var(--gray-light);">Metric</th>
+                                        <th style="text-align: right; padding: 0.75rem; border-bottom: 1px solid var(--gray-light);">Value</th>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 0.75rem; border-bottom: 1px solid var(--gray-light);">Total Slices</td>
+                                        <td style="text-align: right; padding: 0.75rem; border-bottom: 1px solid var(--gray-light); font-weight: 500;">156</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 0.75rem; border-bottom: 1px solid var(--gray-light);">Processing Time</td>
+                                        <td style="text-align: right; padding: 0.75rem; border-bottom: 1px solid var(--gray-light); font-weight: 500;">34.2 seconds</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 0.75rem; border-bottom: 1px solid var(--gray-light);">Model Vertices</td>
+                                        <td style="text-align: right; padding: 0.75rem; border-bottom: 1px solid var(--gray-light); font-weight: 500;">125,438</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 0.75rem; border-bottom: 1px solid var(--gray-light);">Model Faces</td>
+                                        <td style="text-align: right; padding: 0.75rem; border-bottom: 1px solid var(--gray-light); font-weight: 500;">250,872</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 0.75rem; border-bottom: 1px solid var(--gray-light);">File Size</td>
+                                        <td style="text-align: right; padding: 0.75rem; border-bottom: 1px solid var(--gray-light); font-weight: 500;">12.4 MB</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 0.75rem; border-bottom: 1px solid var(--gray-light);">Smoothing Iterations</td>
+                                        <td style="text-align: right; padding: 0.75rem; border-bottom: 1px solid var(--gray-light); font-weight: 500;">7</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 0.75rem; border-bottom: 1px solid var(--gray-light);">Optimal Epoch</td>
+                                        <td style="text-align: right; padding: 0.75rem; border-bottom: 1px solid var(--gray-light); font-weight: 500; color: var(--primary);">23</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <div class="tab-content" id="gallery-tab">
+                            <div class="parameter-section">
+                                <h3>Brain Slices Gallery</h3>
+                                
+                                <div class="tabs">
+                                    <div class="tab active" data-tab="all-slices">All Slices</div>
+                                    <div class="tab" data-tab="key-slices">Key Regions</div>
+                                    <div class="tab" data-tab="comparison">Before/After</div>
+                                    <div class="tab-slide" style="width: 88px;"></div>
+                                </div>
+                                
+                                <div class="gallery-grid" id="sliceGallery">
+                                    <!-- Generated slice thumbnails -->
+                                    <div class="gallery-item">
+                                        <img src="https://placehold.co/150x150/7C3AED/FFFFFF?text=1" alt="Slice thumbnail">
+                                        <div class="gallery-item-number">1</div>
+                                    </div>
+                                    <div class="gallery-item">
+                                        <img src="https://placehold.co/150x150/7C3AED/FFFFFF?text=2" alt="Slice thumbnail">
+                                        <div class="gallery-item-number">2</div>
+                                    </div>
+                                    <div class="gallery-item">
+                                        <img src="https://placehold.co/150x150/7C3AED/FFFFFF?text=3" alt="Slice thumbnail">
+                                        <div class="gallery-item-number">3</div>
+                                    </div>
+                                    <div class="gallery-item">
+                                        <img src="https://placehold.co/150x150/7C3AED/FFFFFF?text=4" alt="Slice thumbnail">
+                                        <div class="gallery-item-number">4</div>
+                                    </div>
+                                    <div class="gallery-item">
+                                        <img src="https://placehold.co/150x150/7C3AED/FFFFFF?text=5" alt="Slice thumbnail">
+                                        <div class="gallery-item-number">5</div>
+                                    </div>
+                                    <div class="gallery-item">
+                                        <img src="https://placehold.co/150x150/7C3AED/FFFFFF?text=6" alt="Slice thumbnail">
+                                        <div class="gallery-item-number">6</div>
+                                    </div>
+                                    <div class="gallery-item">
+                                        <img src="https://placehold.co/150x150/7C3AED/FFFFFF?text=7" alt="Slice thumbnail">
+                                        <div class="gallery-item-number">7</div>
+                                    </div>
+                                    <div class="gallery-item">
+                                        <img src="https://placehold.co/150x150/7C3AED/FFFFFF?text=8" alt="Slice thumbnail">
+                                        <div class="gallery-item-number">8</div>
+                                    </div>
+                                    <div class="gallery-item">
+                                        <img src="https://placehold.co/150x150/7C3AED/FFFFFF?text=9" alt="Slice thumbnail">
+                                        <div class="gallery-item-number">9</div>
+                                    </div>
+                                    <div class="gallery-item">
+                                        <img src="https://placehold.co/150x150/7C3AED/FFFFFF?text=10" alt="Slice thumbnail">
+                                        <div class="gallery-item-number">10</div>
+                                    </div>
+                                    <div class="gallery-item">
+                                        <img src="https://placehold.co/150x150/7C3AED/FFFFFF?text=11" alt="Slice thumbnail">
+                                        <div class="gallery-item-number">11</div>
+                                    </div>
+                                    <div class="gallery-item">
+                                        <img src="https://placehold.co/150x150/7C3AED/FFFFFF?text=12" alt="Slice thumbnail">
+                                        <div class="gallery-item-number">12</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="btn-container" style="margin-top: 1.5rem; justify-content: center;">
+                                    <button class="btn btn-primary">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                            <polyline points="7 10 12 15 17 10"></polyline>
+                                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                                        </svg>
+                                        Export All Images
+                                    </button>
+                                    <button class="btn btn-secondary">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <polyline points="6 9 12 15 18 9"></polyline>
+                                        </svg>
+                                        Load More
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section><!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NeuroViz - Brain Segmentation & 3D Modeling Platform</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/110/three.min.js"></script>
+    <title>NeuroViz - Brain Segmentation Platform</title>
+    <!-- Font import -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js for data visualization -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        
         :root {
             --primary: #7C3AED;
             --primary-light: #a78bfa;
@@ -142,6 +1233,16 @@
         .hero-content {
             flex: 1;
             max-width: 600px;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.8s forwards;
+        }
+        
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
         
         .hero h1 {
@@ -166,6 +1267,14 @@
             display: flex;
             justify-content: flex-end;
             max-width: 500px;
+            opacity: 0;
+            animation: fadeIn 1s 0.3s forwards;
+        }
+        
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+            }
         }
         
         .hero-image img {
@@ -196,6 +1305,12 @@
             margin-bottom: 2rem;
             overflow: hidden;
             border: 1px solid rgba(0, 0, 0, 0.05);
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        
+        .card.active {
+            animation: fadeInUp 0.8s forwards;
         }
         
         .card:hover {
@@ -304,9 +1419,11 @@
             opacity: 0;
             transform: translateY(20px);
             transition: var(--transition);
+            display: none;
         }
         
         .file-info.active {
+            display: block;
             opacity: 1;
             transform: translateY(0);
         }
@@ -448,7 +1565,6 @@
             position: absolute;
             top: 0.25rem;
             left: 0.25rem;
-            width: 0;
             height: calc(100% - 0.5rem);
             background: linear-gradient(90deg, var(--primary), var(--primary-dark));
             border-radius: var(--radius-sm);
@@ -462,17 +1578,6 @@
             border-radius: var(--radius-md);
             margin-bottom: 1.5rem;
             animation: fadeIn 0.5s ease;
-        }
-        
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
         }
         
         .parameter-section h3 {
@@ -712,6 +1817,10 @@
             font-weight: 500;
             margin-top: 1rem;
             color: var(--primary-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
         }
         
         .result-grid {
@@ -791,24 +1900,16 @@
             cursor: pointer;
         }
         
-        .model-viewer {
-            height: 400px;
-            width: 100%;
-            border-radius: var(--radius-md);
-            overflow: hidden;
-            background-color: #f5f5f5;
-        }
-        
-        .chart-container {
-            height: 300px;
-            width: 100%;
-        }
-        
         .metrics-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 1.5rem;
             margin-top: 1.5rem;
+        }
+        
+        .chart-container {
+            height: 300px;
+            width: 100%;
         }
         
         .gallery-grid {
@@ -891,69 +1992,6 @@
             color: white;
         }
         
-        /* Mobile responsiveness */
-        @media (max-width: 768px) {
-            .hero {
-                flex-direction: column;
-                padding: 2rem 0;
-            }
-            
-            .hero-content, .hero-image {
-                max-width: 100%;
-            }
-            
-            .hero-image {
-                margin-top: 2rem;
-                justify-content: center;
-            }
-            
-            .nav-links {
-                display: none;
-            }
-            
-            .result-grid, .metrics-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .footer-content {
-                flex-direction: column;
-                gap: 1.5rem;
-            }
-        }
-        
-        /* Animations */
-        @keyframes pulse {
-            0% {
-                box-shadow: 0 0 0 0 rgba(124, 58, 237, 0.4);
-            }
-            70% {
-                box-shadow: 0 0 0 10px rgba(124, 58, 237, 0);
-            }
-            100% {
-                box-shadow: 0 0 0 0 rgba(124, 58, 237, 0);
-            }
-        }
-        
-        .pulse {
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        .slide-in {
-            animation: slideIn 0.5s ease forwards;
-        }
-        
-        /* Loading indicator */
         .loading-spinner {
             display: inline-block;
             width: 24px;
@@ -970,7 +2008,6 @@
             }
         }
         
-        /* Toast notifications */
         .toast-container {
             position: fixed;
             bottom: 20px;
@@ -988,8 +2025,8 @@
             align-items: center;
             gap: 0.75rem;
             box-shadow: var(--shadow-lg);
-            transform: translateX(120%);
             animation: slideInToast 0.3s forwards, slideOutToast 0.3s forwards 4s;
+            transform: translateX(120%);
         }
         
         @keyframes slideInToast {
@@ -1035,3 +2072,65 @@
             cursor: pointer;
             opacity: 0.7;
         }
+        
+        @media (max-width: 768px) {
+            .hero {
+                flex-direction: column;
+                padding: 2rem 0;
+            }
+            
+            .hero-content, .hero-image {
+                max-width: 100%;
+            }
+            
+            .hero-image {
+                margin-top: 2rem;
+                justify-content: center;
+            }
+            
+            .nav-links {
+                display: none;
+            }
+            
+            .result-grid, .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .footer-content {
+                flex-direction: column;
+                gap: 1.5rem;
+            }
+        }
+        
+        /* Animation for image sliding */
+        .slide-in-section {
+            opacity: 0;
+            transform: translateY(30px);
+            animation: slideIn 0.5s forwards;
+            animation-delay: calc(var(--delay) * 0.1s);
+        }
+        
+        @keyframes slideIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* Add a pulse animation */
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(124, 58, 237, 0.4);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(124, 58, 237, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(124, 58, 237, 0);
+            }
+        }
+    
